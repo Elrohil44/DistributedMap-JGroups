@@ -182,4 +182,9 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
             System.out.println(String.format("%s\t%s", key, value));
         });
     }
+
+    public void close() throws InterruptedException {
+        channel.close();
+        Thread.sleep(5000);
+    }
 }

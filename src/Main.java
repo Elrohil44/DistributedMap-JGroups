@@ -36,7 +36,7 @@ public class Main {
         new Main(channelName, multicastGroup).start();
     }
 
-    public void start() {
+    public void start() throws InterruptedException {
         Scanner scanner = new Scanner(System.in);
         String line, key, value;
         while (!(line = scanner.nextLine()).equals("/q")) {
@@ -70,5 +70,6 @@ public class Main {
                     System.out.println("Unsupported operation");
             }
         }
+        map.close();
     }
 }
