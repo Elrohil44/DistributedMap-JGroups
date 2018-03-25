@@ -29,37 +29,43 @@ public class Main {
     public void start() throws InterruptedException {
         Scanner scanner = new Scanner(System.in);
         String line, key, value;
-        while (!(line = scanner.nextLine()).equals("/q")) {
-            switch (line.toUpperCase().trim()) {
-                case "PUT":
-                    System.out.print("Key:\t");
-                    key = scanner.nextLine();
-                    System.out.print("Value:\t");
-                    value = scanner.nextLine();
-                    System.out.println("Response:\t" + map.put(key, value));
-                    break;
-                case "CONTAINS":
-                    System.out.print("Key:\t");
-                    key = scanner.nextLine();
-                    System.out.println("Response:\t" + map.containsKey(key));
-                    break;
-                case "GET":
-                    System.out.print("Key:\t");
-                    key = scanner.nextLine();
-                    System.out.println("Response:\t" + map.get(key));
-                    break;
-                case "REMOVE":
-                    System.out.print("Key:\t");
-                    key = scanner.nextLine();
-                    System.out.println("Response:\t" + map.remove(key));
-                    break;
-                case "STATE":
-                    map.printState();
-                    break;
-                default:
-                    System.out.println("Unsupported operation");
+        try {
+            while (!(line = scanner.nextLine()).equals("/q")) {
+                switch (line.toUpperCase().trim()) {
+                    case "PUT":
+                        System.out.print("Key:\t");
+                        key = scanner.nextLine();
+                        System.out.print("Value:\t");
+                        value = scanner.nextLine();
+                        System.out.println("Response:\t" + map.put(key, value));
+                        break;
+                    case "CONTAINS":
+                        System.out.print("Key:\t");
+                        key = scanner.nextLine();
+                        System.out.println("Response:\t" + map.containsKey(key));
+                        break;
+                    case "GET":
+                        System.out.print("Key:\t");
+                        key = scanner.nextLine();
+                        System.out.println("Response:\t" + map.get(key));
+                        break;
+                    case "REMOVE":
+                        System.out.print("Key:\t");
+                        key = scanner.nextLine();
+                        System.out.println("Response:\t" + map.remove(key));
+                        break;
+                    case "STATE":
+                        map.printState();
+                        break;
+                    case "CLEAR":
+                        map.clear();
+                        break;
+                    default:
+                        System.out.println("Unsupported operation");
+                }
             }
+        } finally {
+            map.close();
         }
-        map.close();
     }
 }

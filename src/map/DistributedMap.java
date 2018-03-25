@@ -76,18 +76,23 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
 
         public void run() {
             List<View> subgroups = view.getSubgroups();
-            View tmp_view = subgroups.get(0); // picks the first
+            View tmp_view = subgroups.get(0);
             Address local_addr = ch.getAddress();
-            if (!tmp_view.getMembers().contains(local_addr)) {
-                System.out.println("Not member of the new primary partition ("
-                        + tmp_view + "), will re-acquire the state");
+            if (local_addr.equals(tmp_view.getCoord())) {
+                System.out.println("Merge request");
+                Address state_address = subgroups
+                        .get((int) Math.floor(Math.random() * subgroups.size()))
+                        .getCoord();
+                System.out.println("Address of new state: " + state_address);
+                MapMessage message = new MapMessage()
+                        .setOperation(Operation.SET_STATE)
+                        .setStateAddress(state_address);
                 try {
-                    ch.getState(null, 30000);
-                } catch (Exception ignored) {
+                    ch.send(null, message);
+                    ch.getState(state_address, 30000);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } else {
-                System.out.println("Member of the new primary partition ("
-                        + tmp_view + "), will do nothing");
             }
         }
     }
@@ -102,10 +107,26 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
         MapMessage mapMessage = (MapMessage) msg.getObject();
         switch (mapMessage.getOperation()) {
             case PUT:
+                System.out.println("Received message PUT");
                 this.hashMap.put(mapMessage.getKey(), mapMessage.getValue());
                 break;
             case REMOVE:
+                System.out.println("Received message REMOVE");
                 this.hashMap.remove(mapMessage.getKey());
+                break;
+            case SET_STATE:
+                System.out.println("Received message SET_STATE");
+                if (channel.getAddress().equals(mapMessage.getStateAddress())) {
+                    break;
+                }
+                System.out.println("Acquiring state from " + mapMessage.getStateAddress());
+                new Thread(() -> {
+                    try {
+                        channel.getState(mapMessage.getStateAddress(), 30000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
                 break;
             default:
                 break;
@@ -186,5 +207,21 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
     public void close() throws InterruptedException {
         channel.close();
         Thread.sleep(5000);
+    }
+
+    public void clear() {
+        synchronized (hashMap) {
+            MapMessage message = new MapMessage()
+                    .setOperation(Operation.REMOVE);
+            hashMap.keySet().forEach(key -> {
+                message.setKey(key);
+                try {
+                    channel.send(null, message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            hashMap.clear();
+        }
     }
 }
