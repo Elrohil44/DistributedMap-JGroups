@@ -1,7 +1,5 @@
 package map;
 
-import org.jgroups.util.Util;
-
 import java.io.*;
 
 public class MapMessage implements Serializable {
