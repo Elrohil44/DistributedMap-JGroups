@@ -1,7 +1,12 @@
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'application'
+
+version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
+
+mainClassName = "Main"
 
 repositories {
     mavenCentral()
@@ -17,4 +22,17 @@ sourceSets {
 
 dependencies {
     compile group: 'org.jgroups', name: 'jgroups', version: '3.6.13.Final'
+}
+
+run {
+    standardInput = System.in
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': "Main"
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }

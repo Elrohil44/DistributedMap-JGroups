@@ -52,7 +52,7 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
                 .addProtocol(new UFC())
                 .addProtocol(new MFC())
                 .addProtocol(new FRAG2())
-                .addProtocol(new STATE_TRANSFER());
+                .addProtocol(new STATE());
 
         stack.init();
     }
@@ -88,8 +88,21 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
                         .setOperation(Operation.SET_STATE)
                         .setStateAddress(state_address);
                 try {
-                    ch.send(null, message);
-                    ch.getState(state_address, 30000);
+                    subgroups.forEach(subgroup -> {
+                        if (!subgroup.getCoord().equals(state_address)) {
+                            subgroup.getMembers().forEach(member -> {
+                                try {
+                                    ch.send(member, message);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        }
+                    });
+                    if (!state_address.equals(local_addr)) {
+                        System.out.println("Acquiring state from " + state_address);
+                        ch.getState(state_address, 30000);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
